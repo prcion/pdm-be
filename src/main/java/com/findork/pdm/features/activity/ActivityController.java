@@ -31,8 +31,8 @@ public class ActivityController {
 
     @GetMapping
     public ResponseEntity<?> getAllActivitiesByUser(User user) {
-        System.out.println(user.getUsername());
-        return ResponseEntity.ok(activityConverter.fromListActivityToListActivityDto(user.getActivities()));
+        System.out.println(activityConverter.fromListActivityToListActivityDto(user.getActivities()).size());
+        return ResponseEntity.ok(activityConverter.fromListActivityToListActivityDto(user.getActivities()).stream().sorted(Comparator.comparing(ActivityDto::getId).reversed()).collect(Collectors.toList()));
     }
 
     @GetMapping("/all")
@@ -49,9 +49,13 @@ public class ActivityController {
     }
 
     @PostMapping
-    public void createActivityForUser(@RequestBody ActivityDto activityDto, User user) {
-        var activity = activityConverter.fromActivityDtoToActivity(activityDto);
-        activityService.save(activity, user);
+    public ResponseEntity<?> createActivityForUser(@RequestBody ActivityDto activityDto, User user) throws ExecutionException, InterruptedException {
+        StompSession stompSession = getStompSession();
+
+        var activity = activityService.save(activityConverter.fromActivityDtoToActivity(activityDto), user);
+        activityDto = activityConverter.fromActivityToActivityDto(activity);
+        stompSession.send("/app/news", new ActivityDtoWs( "created", activityDto));
+        return ResponseEntity.ok(activityDto);
     }
 
     @PostMapping("/test")

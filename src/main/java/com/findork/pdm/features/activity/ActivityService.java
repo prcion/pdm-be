@@ -13,10 +13,11 @@ import java.util.List;
 public class ActivityService {
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
-    @Transactional
-    public void save(Activity activity, User user) {
-        user.addActivity(activity);
-        userRepository.save(user);
+
+    public Activity save(Activity activity, User currentUser) {
+        User user = userRepository.getOne(currentUser.getId());
+        activity.setUser(user);
+        return activityRepository.save(activity);
     }
 
     public List<Activity> getAll() {

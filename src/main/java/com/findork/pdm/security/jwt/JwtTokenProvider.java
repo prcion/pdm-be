@@ -51,7 +51,7 @@ public class JwtTokenProvider {
 
         Date now = new Date();
 
-        Date expiryDate = new Date(now.getTime() + expirationInMs);
+        Date expiryDate = new Date(now.getTime() + 36000000);
         final String authorities = userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
         Map<String, Object> claims = new HashMap<>();

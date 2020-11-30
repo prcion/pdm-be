@@ -1,6 +1,7 @@
 package com.findork.pdm.security.auth;
 
 import com.findork.pdm.features.account.User;
+import com.findork.pdm.features.account.UserRepository;
 import com.findork.pdm.features.account.mapper.UserMapper;
 import com.findork.pdm.security.constants.AuthConstants;
 import com.findork.pdm.security.handler.RequestHandler;
@@ -41,6 +42,7 @@ public class AuthController {
     private final AuthService authService;
     private final HttpResponseUtil httpResponseUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final UserRepository userRepository;
     /**
      * Validate the credentials and generate the jwt tokens
      *
@@ -56,8 +58,8 @@ public class AuthController {
 
         var refreshJwt = tokenProvider.generateRefreshToken(userDetails);
         var accessJwt = tokenProvider.generateAccessToken(userDetails);
-
-        return ResponseEntity.ok(JwtAuthenticationResponse.builder().accessToken(accessJwt).refreshToken(refreshJwt).build());
+        var user = userRepository.findByUsernameOrEmail(loginRequest.getUsername(), loginRequest.getUsername());
+        return ResponseEntity.ok(JwtAuthenticationResponse.builder().token(accessJwt).refreshToken(refreshJwt).userId(user.get().getId()).build());
     }
 
     private void authenticate(String username, String password, Collection<? extends GrantedAuthority> authorities) {
