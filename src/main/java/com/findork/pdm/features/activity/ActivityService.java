@@ -3,6 +3,8 @@ package com.findork.pdm.features.activity;
 import com.findork.pdm.features.account.User;
 import com.findork.pdm.features.account.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,10 @@ import java.util.List;
 public class ActivityService {
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
+
+    public Page<Activity> searchByUserId(Long userId, Pageable pageable, String name) {
+        return activityRepository.findAllByUserId(userId, pageable, name);
+    }
 
     public Activity save(Activity activity, User currentUser) {
         User user = userRepository.getOne(currentUser.getId());

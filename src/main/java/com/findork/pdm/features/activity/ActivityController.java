@@ -6,6 +6,7 @@ import com.findork.pdm.config.CustomStompSessionHandler;
 import com.findork.pdm.features.account.User;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -16,6 +17,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -30,9 +32,11 @@ public class ActivityController {
     private ObjectMapper objectMapper;
 
     @GetMapping
-    public ResponseEntity<?> getAllActivitiesByUser(User user) {
-        System.out.println(activityConverter.fromListActivityToListActivityDto(user.getActivities()).size());
-        return ResponseEntity.ok(activityConverter.fromListActivityToListActivityDto(user.getActivities()).stream().sorted(Comparator.comparing(ActivityDto::getId).reversed()).collect(Collectors.toList()));
+    public ResponseEntity<?> getAllActivitiesByUser(User user, Pageable pageable, @RequestParam(value = "name", required = false) String name) {
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
+        Page<Activity> pageActivities =  activityService.searchByUserId(user.getId(), pageable, name);
+        List<ActivityDto> activityDtoList = activityConverter.fromListActivityToListActivityDto(pageActivities.getContent());
+        return ResponseEntity.ok(new PageImpl<>(activityDtoList, pageable, pageActivities.getTotalElements()));
     }
 
     @GetMapping("/all")
